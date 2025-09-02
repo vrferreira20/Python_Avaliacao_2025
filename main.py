@@ -4,7 +4,7 @@ def LoadData(DATASET):
   df = None
   
   try:
-    df = pd.read_csv(DATASET)
+    df = pd.read_csv(DATASET,sep=',',encoder='utf8')
     print(df)
   except:
     print('Load dataset Error!')
