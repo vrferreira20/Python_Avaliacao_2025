@@ -2,12 +2,15 @@ import pandas as pd
 
 def LoadData(DATASET):
   df = None
+  
   try:
     df = pd.read_csv(DATASET)
     print(df)
   except:
     print('Load dataset Error!')
-    return df
+    
+  return df
+    
 def DataTreat(data)
   print(data.info())
 
