@@ -11,7 +11,7 @@ def LoadData(DATASET):
     
   return df
     
-def DataTreat(data)
+def DataTreat(data):
   print(data.info())
 
 DATASET = 'insurance.csv'
