@@ -36,7 +36,7 @@ def DataTreat(data):
             except:
                 return None #Caso seja apenas um número (ex.: "2100"), converte para float. Se não conseguir converter, retorna None.
 
-    data['total_sqft'] = data['total_sqft'].apply(convert) #Aplica a função convert em toda a coluna total_sqft, convertendo os valores para números.
+    data['total_sqft'] = data['total_sqft'].apply(convert) #Aplica a função convert em toda a coluna total_sqft, convertendo os valores para números. ->'apply(convert)' pega cada valor da coluna e passa como argumento para a função.
     #print(data['total_sqft'])
 
     # ---- Extrai número de quartos ----
