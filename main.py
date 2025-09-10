@@ -65,8 +65,8 @@ def distribuicao_preco(data):
     plt.title("Distribuição dos preços das casas")
     plt.show()
 
-def boxplot_size_price(data):
-    sns.boxplot(data=data, x="size", y="price")
+def boxplot_room_price(data):
+    sns.boxplot(data=data, x="Room", y="price")
     plt.xticks(rotation=45)
     plt.title("Distribuição de preço por número de quartos")
     plt.show()
