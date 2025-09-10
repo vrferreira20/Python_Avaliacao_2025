@@ -18,7 +18,7 @@ def DataTreat(data):
     data.dropna(inplace=True)                           
 
     # ---- Trata total_sqft ----
-    def convert(x):
+    def convert(x): # 'x' representa o valor de cada coluna
         x = str(x) #Converte o valor para string (facilita o tratamento de ranges e textos).
         if '-' in x:  
             a, b = x.split('-')
