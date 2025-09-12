@@ -59,6 +59,7 @@ def prepareData(data):
 
     data.drop(columns=['size'], inplace=True)
 
+
     #print(data['location'].value_counts())
 
     #print(data.info())

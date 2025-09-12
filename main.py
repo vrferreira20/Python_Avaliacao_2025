@@ -50,11 +50,15 @@ def DataTreat(data):
     # ---- Extrai número de quartos para uma nova coluna ----
     data['room'] = data['size'].str.extract(r'(\d+)').astype(float) # Usa um regex (é uma linguagem de padrões usada para encontrar e manipular textos), onde '\d+' extrai apenas os números na coluna size.
 
+    data['Price per M²'] =  data['price']/data['total_sqft']
+
     lb = LabelEncoder()
     data['location'] = lb.fit_transform(data['location'])
+
     print(data.head())
 
     return data
+
 def dispersao_grafico(data, x_col, y_col):
     plt.figure(figsize=(8,6))
     plt.scatter(data[x_col], data[y_col], color = 'blue', alpha=0.6) # Plota todos os pontos de uma vez, colorindo pela classe
@@ -71,12 +75,10 @@ def distribuicao_preco(data):
     plt.show()
 
 def boxplot_room_price(data):
-    sns.boxplot(data=data, x="total_sqft", y="price")
-    plt.xticks(rotation=45)
+    sns.boxplot(data=data, x="Price per M²", y="room")
     plt.title("Distribuição de preço por número de quartos")
     plt.show()
 
-#esse heatmap trás uma correlação não muito relevante
 def correlacao_val_num(data):
     corr = data[["price", "total_sqft", "bath"]].corr()
     sns.heatmap(corr, annot=True, cmap="coolwarm")
@@ -98,7 +100,7 @@ if data is not None:
     data = DataTreat(data)
     #dispersao_grafico(data, x_col='total_sqft', y_col='price')
     #distribuicao_preco(data)
-    #boxplot_room_price(data)
+    boxplot_room_price(data)
     #correlacao_val_num(data)
     #preco_med(data)
 
