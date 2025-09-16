@@ -112,7 +112,13 @@ def lmplot_graph (data):
     sns.lmplot(data=data,x="price",y="total_sqft",palette="muted",
     ci=None,height=4,scatter_kws={"s": 50, "alpha": 1})
     plt.show()
-    
+
+# Variável dependente (coluna 'Accident' no dataset original)
+y = base['price'].values  
+
+# Variáveis independentes (todas menos 'Accident')
+x = base.drop(columns=['price']).values
+#print(x)
 # Dividindo os dados em conjuntos de treino e teste
 x_treinamento, x_teste, y_treinamento, y_teste = train_test_split(x, y, test_size=0.3, random_state=12)
 
