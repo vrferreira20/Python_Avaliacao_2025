@@ -38,7 +38,7 @@ def DataTreat(data):
     
         else:
             try:
-                return float(x)  # Se já for número, retorna como float
+                return float(x) / 10.764 # Se já for número, retorna como float
             except:
                 return None  # Caso não consiga converter
 
@@ -80,6 +80,7 @@ def DataTreat(data):
 
     data.drop(columns=['size','total_sqft'], inplace=True, errors='ignore')
 
+    data = data[data['total_sqm'].notna()]
     data['Price_per_M²'] =  data['price']/data['total_sqm']
 
     #lb = LabelEncoder()
@@ -99,7 +100,7 @@ def dispersao_grafico(data, x_col, y_col):
 
 def distribuicao_preco(data):
     plt.figure(figsize=(8,6))
-    sns.histplot(data=data, x="total_sqm", y="price", bins=60)
+    sns.histplot(data=data, x="total_sqm", y="price", multiple='stack', bins=60)
     #plt.yscale(value='linear')
     plt.title("Distribuição dos preços das casas")
     plt.show()
@@ -150,7 +151,7 @@ if data is not None:
     #distribuicao_preco(data)
     #boxplot_room_price(data)
     #correlacao_val_num(data)
-    preco_med(data)
-    #lmplot_graph(data)
+    #preco_med(data)
+    lmplot_graph(data)
     #conj_treino_teste(data)
 
