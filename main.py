@@ -20,56 +20,70 @@ def DataTreat(data):
     data.drop_duplicates(inplace=True)                  
     data.drop(columns=['availability','society'], inplace=True, errors='ignore') # Remove as colunas availability e society, que não são relevantes. errors='ignore' evita erro se alguma dessas colunas não existir.
     data.dropna(inplace=True)                           
+    # -------------------------------------------------------------------
 
-    # ---- Trata total_sqft ----
-    def convert_sgft(x): # 'x' representa o valor de cada coluna
-        x = str(x) #Converte o valor para string (facilita o tratamento de ranges e textos).
-        if '-' in x:
+    # ---- Trata convert_sqm ----
+    def convert_sqm(x):  # 'x' representa o valor de cada célula
+        x = str(x)  # Converte para string para facilitar o tratamento
+    
+        if '-' in x:  # Caso seja um intervalo, pega a média
             a, b = x.split('-')
-            return (float(a) + float(b)) / 2 #Caso x seja um intervalo (ex.: "2100-2850"), divide em dois valores e tira a média.
-        
-        elif 'Sq. Meter' in x:
-            return float(x.replace('Sq. Meter','')) * 10.7639 #Caso esteja em m², remove o texto "Sq. Meter", transforma em número e converte para sqft (1 m² = 10.7639 sqft).
-        
-        elif 'Perch' in x:
-            return float(x.replace('Perch','')) * 272.25 #Caso esteja em Perch (medida usada em alguns países), converte para sqft.
-        
+            return (float(a) + float(b)) / 2
+    
+        elif 'Sq. Meter' in x:  # Já está em m², só remove o texto
+            return float(x.replace('Sq. Meter',''))
+    
+        elif 'Perch' in x:  # Converte de Perch para m²
+            return float(x.replace('Perch','')) * 25.2929  # 1 Perch ≈ 25.2929 m²
+    
         else:
             try:
-                return float(x)
+                return float(x)  # Se já for número, retorna como float
             except:
-                return None #Caso seja apenas um número (ex.: "2100"), converte para float. Se não conseguir converter, retorna None.
+                return None  # Caso não consiga converter
 
 
-    data['total_sqft'] = data['total_sqft'].apply(convert_sgft) #Aplica a função convert em toda a coluna total_sqft, convertendo os valores para números. ->'apply(convert)' pega cada valor da coluna e passa como argumento para a função.
-    #print(data['total_sqft'])
+    data['total_sqm'] = data['total_sqft'].apply(convert_sqm) #Aplica a função convert em toda a coluna convert_sqm, convertendo os valores para números. ->'apply(convert)' pega cada valor da coluna e passa como argumento para a função.
+    #print(data['convert_sqm'])
 
-     # ---- Converte price ----
+    # -------------------------------------------------------------------
+
+    # ---- Converte price ----
     data['price'] = (data['price'] * 100000) * 0.063 # Aprica uma conversão na coluna price. Motivo: O preço originalmente está em Lakh/Lac (uma unidade do sistema de numeração indiano), então converto ele primeiro para rúpias indianas (INR) e depois para Real (R$)
     #print(data['price'])
 
     # -------------------------------------------------------------------
+
+    # ---- Remove OutLiers ----
     def remove_outliers_iqr(data, column):
-        Q1 = data[column].quantile(0.25)
-        Q3 = data[column].quantile(0.75)
-        IQR = Q3 - Q1
+        Q1 = data[column].quantile(0.25) # Calcula o 1º quartil (25%)
+        Q3 = data[column].quantile(0.75) # Calcula o 2º quartil (75%)
+        IQR = Q3 - Q1                    # Intervalo interquartílico (Q3 - Q1)
     
+        # Mantém apenas linhas em que o valor da coluna esteja dentro dos limites:
         data_clean = data[(data[column] >= Q1 - 1.5 * IQR) & (data[column] <= Q3 + 1.5 * IQR)]
+
+        #Por que 1.5?
+        #O IQR mede a dispersão do meio dos dados (entre o 25% e 75%).
+        #Multiplicar por 1.5 significa que aceita valores até 1.5 vezes a “largura normal” dos dados antes de chamar de outlier.
+
         return data_clean
 
     print("Antes:", data.shape)
-    for col in ["price", "bath", "total_sqft"]:
-        data = remove_outliers_iqr(data, col)
+    for column in ["price", "bath", "total_sqm"]:
+        data = remove_outliers_iqr(data, column)
     print("Depois:", data.shape)
 
 
     # ---- Extrai número de quartos para uma nova coluna ----
     data['room'] = data['size'].str.extract(r'(\d+)').astype(float) # Usa um regex (é uma linguagem de padrões usada para encontrar e manipular textos), onde '\d+' extrai apenas os números na coluna size.
 
-    data['Price_per_M²'] =  data['price']/data['total_sqft']
+    data.drop(columns=['size','total_sqft'], inplace=True, errors='ignore')
 
-    lb = LabelEncoder()
-    data['location'] = lb.fit_transform(data['location'])
+    data['Price_per_M²'] =  data['price']/data['total_sqm']
+
+    #lb = LabelEncoder()
+    #data['location'] = lb.fit_transform(data['location'])
 
     #print(data.head())
 
@@ -85,42 +99,46 @@ def dispersao_grafico(data, x_col, y_col):
 
 def distribuicao_preco(data):
     plt.figure(figsize=(8,6))
-    sns.histplot(data=data, x="total_sqft", y="price", bins=60)
+    sns.histplot(data=data, x="total_sqm", y="price", bins=60)
     #plt.yscale(value='linear')
     plt.title("Distribuição dos preços das casas")
     plt.show()
 
 def boxplot_room_price(data):
-    sns.boxplot(data=data, x="Price_per_M²,", y="room")
+    sns.boxplot(data=data, x="Price_per_M²", y="room")
     plt.title("Distribuição de preço por número de quartos")
     plt.show()
 
 def correlacao_val_num(data):
-    corr = data[["price", "total_sqft", "bath"]].corr()
+    corr = data[["price", "total_sqm", "bath"]].corr()
     sns.heatmap(corr, annot=True, cmap="coolwarm")
     plt.yticks(rotation= 360)
     plt.title("Correlação entre variáveis numéricas")
     plt.show()
 
 def preco_med (data):
-    locations = data.groupby("area_type")["price"].mean().sort_values(ascending=False).head(10)
+    locations = data.groupby("location")["price"].mean().sort_values(ascending=False).head(10)
     sns.barplot(x=locations.values, y=locations.index, palette='viridis')
     plt.title("Top 10 localizações com maior preço médio")
     plt.show()
 
-def lmplot_graph (data):
-    sns.lmplot(data=data,x="price",y="total_sqft",palette="muted",
+def lmplot_graph (data): #  O gráfico mostra como o preço por metro quadrado varia em função do tipo da área
+    sns.lmplot(data=data,x="price",y="Price_per_M²",palette="muted", hue="area_type",
     ci=None,height=4,scatter_kws={"s": 50, "alpha": 1})
+    plt.yticks(rotation= 360)
     plt.show()
 
-# Variável dependente (coluna 'Accident' no dataset original)
-y = base['price'].values  
+def conj_treino_teste(data):
+    # Variável dependente (coluna 'price' no dataset original)
+    y = data['price'].values  
 
-# Variáveis independentes (todas menos 'Accident')
-x = base.drop(columns=['price']).values
-#print(x)
-# Dividindo os dados em conjuntos de treino e teste
-x_treinamento, x_teste, y_treinamento, y_teste = train_test_split(x, y, test_size=0.3, random_state=12)
+    # Variáveis independentes (todas menos 'price')
+    x = data.drop(columns=['price']).values
+    #print(x)
+    # Dividindo os dados em conjuntos de treino e teste
+    x_treinamento, x_teste, y_treinamento, y_teste = train_test_split(x, y, test_size=0.3, random_state=12)
+
+    return x_treinamento, x_teste, y_treinamento, y_teste
 
 # ---------- Execução ----------
 DATASET = 'DataHouse.csv'
@@ -128,10 +146,11 @@ data = LoadData(DATASET)
 
 if data is not None:
     data = DataTreat(data)
-    #dispersao_grafico(data, x_col='total_sqft', y_col='price')
+    #dispersao_grafico(data, x_col='Price_per_M²', y_col='price')
     #distribuicao_preco(data)
     #boxplot_room_price(data)
     #correlacao_val_num(data)
-    #preco_med(data)
+    preco_med(data)
     #lmplot_graph(data)
+    #conj_treino_teste(data)
 
