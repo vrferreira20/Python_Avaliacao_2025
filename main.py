@@ -38,13 +38,13 @@ def DataTreat(data):
     
         else:
             try:
-                return float(x) / 10.764 # Se já for número, retorna como float
+                return float(x) / 10.764 # Se já for número, retorna como float e convertendo para metro quadrado
             except:
                 return None  # Caso não consiga converter
 
 
     data['total_sqm'] = data['total_sqft'].apply(convert_sqm) #Aplica a função convert em toda a coluna convert_sqm, convertendo os valores para números. ->'apply(convert)' pega cada valor da coluna e passa como argumento para a função.
-    #print(data['convert_sqm'])
+    data = data[data['total_sqm'].notna()]  # Remove linhas que não foram convertidas
 
     # -------------------------------------------------------------------
 
@@ -80,7 +80,6 @@ def DataTreat(data):
 
     data.drop(columns=['size','total_sqft'], inplace=True, errors='ignore')
 
-    data = data[data['total_sqm'].notna()]
     data['Price_per_M²'] =  data['price']/data['total_sqm']
 
     #lb = LabelEncoder()
@@ -92,10 +91,10 @@ def DataTreat(data):
 
 def dispersao_grafico(data, x_col, y_col):
     plt.figure(figsize=(8,6))
-    plt.scatter(data[x_col], data[y_col], color = 'blue', alpha=0.6) # Plota todos os pontos de uma vez, colorindo pela classe
+    plt.scatter(data[x_col], data[y_col], color='blue', alpha=0.6)
     plt.xlabel(x_col)
     plt.ylabel(y_col)
-    plt.title(f'Dispersão Binomial: {x_col} x {y_col}')
+    plt.title(f'Dispersão: {x_col} x {y_col}')
     plt.show()
 
 def distribuicao_preco(data):
@@ -147,11 +146,11 @@ data = LoadData(DATASET)
 
 if data is not None:
     data = DataTreat(data)
-    #dispersao_grafico(data, x_col='Price_per_M²', y_col='price')
+    dispersao_grafico(data, x_col='Price_per_M²', y_col='price')
     #distribuicao_preco(data)
     #boxplot_room_price(data)
     #correlacao_val_num(data)
     #preco_med(data)
-    lmplot_graph(data)
+    #lmplot_graph(data)
     #conj_treino_teste(data)
 
