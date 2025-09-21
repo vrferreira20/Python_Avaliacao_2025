@@ -22,8 +22,8 @@ def DataTreat(data):
     data.dropna(inplace=True)                           
     # -------------------------------------------------------------------
 
-    # ---- Trata convert_sqm ----
-    def convert_sqm(x):  # 'x' representa o valor de cada célula
+    # ---- Tratamento do convert_sqm ----
+    def convert_sqm(x): # 'x' representa o valor de cada célula
         x = str(x)  # Converte para string para facilitar o tratamento
     
         if '-' in x:  # Caso seja um intervalo, pega a média
@@ -43,16 +43,16 @@ def DataTreat(data):
                 return None  # Caso não consiga converter
 
 
-    data['total_sqm'] = data['total_sqft'].apply(convert_sqm) #Aplica a função convert em toda a coluna convert_sqm, convertendo os valores para números. ->'apply(convert)' pega cada valor da coluna e passa como argumento para a função.
+    data['total_sqm'] = data['total_sqft'].apply(convert_sqm)                                                           #Aplica a função convert em toda a coluna convert_sqm, convertendo os valores para números. ->'apply(convert)' pega cada valor da coluna e passa como argumento para a função.
     data = data[data['total_sqm'].notna()]  # Remove linhas que não foram convertidas
 
     # -------------------------------------------------------------------
 
     # ---- Converte price ----
-    data['price'] = (data['price'] * 100000) * 0.063 # Aprica uma conversão na coluna price. Motivo: O preço originalmente está em Lakh/Lac (uma unidade do sistema de numeração indiano), então converto ele primeiro para rúpias indianas (INR) e depois para Real (R$)
-    #print(data['price'])
-
+    data['price'] = (data['price'] * 100000) * 0.063                            # Aplica uma conversão na coluna price. Motivo: O preço originalmente está em Lakh/Lac (uma unidade do sistema de numeração indiano), então converto ele primeiro para rúpias indianas (INR) e depois para Real (R$)
+    
     # -------------------------------------------------------------------
+    #print(data['price'])
 
     # ---- Remove OutLiers ----
     def remove_outliers_iqr(data, column):
@@ -73,6 +73,7 @@ def DataTreat(data):
     for column in ["price", "bath", "total_sqm"]:
         data = remove_outliers_iqr(data, column)
     print("Depois:", data.shape)
+    # -------------------------------------------------------------------
 
 
     # ---- Extrai número de quartos para uma nova coluna ----
@@ -136,7 +137,7 @@ def conj_treino_teste(data):
     x = data.drop(columns=['price']).values
     #print(x)
     # Dividindo os dados em conjuntos de treino e teste
-    x_treinamento, x_teste, y_treinamento, y_teste = train_test_split(x, y, test_size=0.3, random_state=12)
+    x_treinamento, x_teste, y_treinamento, y_teste = train_test_split(x, y, test_size=0.3, random_state=42)
 
     return x_treinamento, x_teste, y_treinamento, y_teste
 
