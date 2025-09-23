@@ -23,28 +23,44 @@ def DataTreat(data):
     # -------------------------------------------------------------------
 
     # ---- Tratamento do convert_sqm ----
-    def convert_sqm(x): # 'x' representa o valor de cada célula
-        x = str(x)  # Converte para string para facilitar o tratamento
+    def convert_sqm(v_col): # 'v_col' representa o valor de cada célula
+        v_col = str(v_col)  # Converte para string para facilitar o tratamento
     
-        if '-' in x:  # Caso seja um intervalo, pega a média
-            a, b = x.split('-')
+        if '-' in v_col:  # Caso seja um intervalo, pega a média
+            a, b = v_col.split('-')
             return (float(a) + float(b)) / 2
     
-        elif 'Sq. Meter' in x:  # Já está em m², só remove o texto
-            return float(x.replace('Sq. Meter',''))
+        elif 'Sq. Meter' in v_col:  # Já está em m², só remove o texto
+            return float(v_col.replace('Sq. Meter',''))
     
-        elif 'Perch' in x:  # Converte de Perch para m²
-            return float(x.replace('Perch','')) * 25.2929  # 1 Perch ≈ 25.2929 m²
+        elif 'Perch' in v_col:  # Converte de Perch para m²
+            return float(v_col.replace('Perch','')) * 25.2929  # 1 Perch ≈ 25.2929 m²
     
         else:
             try:
-                return float(x) / 10.764 # Se já for número, retorna como float e convertendo para metro quadrado
+                return float(v_col) / 10.764 # Se já for número, retorna como float e convertendo para metro quadrado
             except:
                 return None  # Caso não consiga converter
 
 
     data['total_sqm'] = data['total_sqft'].apply(convert_sqm)                                                           #Aplica a função convert em toda a coluna convert_sqm, convertendo os valores para números. ->'apply(convert)' pega cada valor da coluna e passa como argumento para a função.
     data = data[data['total_sqm'].notna()]  # Remove linhas que não foram convertidas
+
+    # -------------------------------------------------------------------
+
+    # ---- Traduz area_type ----
+    def traduz_a_type(v_col):
+        mapa = {
+            "super built-up area": "Zona Densamente Urbanizada",
+            "plot area": "Terreno/Parcela de terra",
+            "built-up area": "Área construída/edificada",
+            "carpet area": "Área útil líquida"
+        }
+        v_col = " ".join(str(v_col).lower().split())                        #Força a ser uma string, coloca em minúsculo, remove espaços extras no início, fim ou no meio.
+        return mapa.get(v_col, None)                                        # Caso a chave não exista retorna o valor como ausente que mais tarde é excluido 
+
+    data['tipo_area'] = data['area_type'].apply(traduz_a_type)
+    data = data[data['tipo_area'].notna()]
 
     # -------------------------------------------------------------------
 
@@ -77,10 +93,12 @@ def DataTreat(data):
 
 
     # ---- Extrai número de quartos para uma nova coluna ----
-    data['room'] = data['size'].str.extract(r'(\d+)').astype(float) # Usa um regex (é uma linguagem de padrões usada para encontrar e manipular textos), onde '\d+' extrai apenas os números na coluna size.
+    data['room'] = data['size'].str.extract(r'(\d+)').astype(float)                          # Usa um regex (é uma linguagem de padrões usada para encontrar e manipular textos), onde '\d+' extrai apenas os números na coluna size.
 
-    data.drop(columns=['size','total_sqft'], inplace=True, errors='ignore')
+    # ---- Dropa as colunas não mais utilizadas ----
+    data.drop(columns=['size','total_sqft','area_type'], inplace=True, errors='ignore')
 
+    # ---- Gera o preço por Metro Quadrado ----
     data['Price_per_M²'] =  data['price']/data['total_sqm']
 
     #lb = LabelEncoder()
@@ -100,14 +118,18 @@ def dispersao_grafico(data, x_col, y_col):
 
 def distribuicao_preco(data):
     plt.figure(figsize=(8,6))
-    sns.histplot(data=data, x="total_sqm", y="price", multiple='stack', bins=60)
+    sns.histplot(data=data, x="price", multiple='stack', bins=60)
     #plt.yscale(value='linear')
     plt.title("Distribuição dos preços das casas")
     plt.show()
 
 def boxplot_room_price(data):
-    sns.boxplot(data=data, x="Price_per_M²", y="room")
-    plt.title("Distribuição de preço por número de quartos")
+    plt.figure(figsize=(10,6))
+    sns.boxplot(x="tipo_area", y="total_sqm", data=data)
+    plt.title("Área total por tipo de imóvel")
+    plt.ylabel("Área total (sqft)")
+    plt.xlabel("Tipo de área")
+    plt.xticks(rotation=45)
     plt.show()
 
 def correlacao_val_num(data):
@@ -123,10 +145,20 @@ def preco_med (data):
     plt.title("Top 10 localizações com maior preço médio")
     plt.show()
 
-def lmplot_graph (data): #  O gráfico mostra como o preço por metro quadrado varia em função do tipo da área
-    sns.lmplot(data=data,x="price",y="Price_per_M²",palette="muted", hue="area_type",
-    ci=None,height=4,scatter_kws={"s": 50, "alpha": 1})
-    plt.yticks(rotation= 360)
+def lmplot_graph(data):
+    # Cria o lmplot e guarda o objeto FacetGrid em "g"
+    g = sns.lmplot(data=data, x="price", y="Price_per_M²", palette="muted", hue="tipo_area", ci=None, height=6, aspect=1.5, scatter_kws={"s": 50, "alpha": 1})
+
+    # Expande os eixos em 10% para dar "respiro"
+    x_min, x_max = data["price"].min(), data["price"].max()
+    y_min, y_max = data["Price_per_M²"].min(), data["Price_per_M²"].max()
+
+    g.set(
+        xlim=(x_min * 0.9, x_max * 1.1),
+        ylim=(y_min * 0.9, y_max * 1.1)
+    )
+
+    plt.yticks(rotation=360)
     plt.show()
 
 def conj_treino_teste(data):
@@ -147,7 +179,7 @@ data = LoadData(DATASET)
 
 if data is not None:
     data = DataTreat(data)
-    dispersao_grafico(data, x_col='Price_per_M²', y_col='price')
+    #dispersao_grafico(data, x_col='Price_per_M²', y_col='price')
     #distribuicao_preco(data)
     #boxplot_room_price(data)
     #correlacao_val_num(data)
