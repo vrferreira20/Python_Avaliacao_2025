@@ -166,19 +166,17 @@ def preco_med(data):
     plt.show()
 
 def lmplot_graph(data):
-    # Cria o lmplot e guarda o objeto FacetGrid em "g"
-    g = sns.lmplot(data=data, x="price", y="Price_per_M²", palette="muted", hue="tipo_area", ci=None, height=6, aspect=1.5, scatter_kws={"s": 50, "alpha": 1})
-
-    # Expande os eixos em 10% para dar "respiro"
-    x_min, x_max = data["price"].min(), data["price"].max()
-    y_min, y_max = data["Price_per_M²"].min(), data["Price_per_M²"].max()
-
-    g.set(
-        xlim=(x_min * 0.9, x_max * 1.1),
-        ylim=(y_min * 0.9, y_max * 1.1)
+    sns.lmplot(
+    data=data, 
+    x="price", 
+    y="Price_per_M²",
+    hue="tipo_area",     # cores diferentes para cada tipo de área
+    col="tipo_area",     # cria um gráfico separado para cada tipo de área
+    col_wrap=2,          # organiza em até 3 colunas
+    height=4,            # tamanho de cada facet
+    scatter_kws={"s": 20, "alpha": 0.7}  # estética dos pontos
     )
 
-    plt.yticks(rotation=360)
     plt.show()
 
 def conj_treino_teste(data):
@@ -212,6 +210,6 @@ if data is not None:
     #boxplot_room_price(data)
     #correlacao_val_num(data)
     #preco_med(data)
-    #lmplot_graph(data)
+    lmplot_graph(data)
     #conj_treino_teste(data)
 
