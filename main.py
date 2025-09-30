@@ -167,8 +167,7 @@ def preco_med(data):
 
 def lmplot_graph(data):
     # Cria o lmplot e guarda o objeto FacetGrid em "g"
-    g = sns.lmplot(data=data, x="price", y="Price_per_M²", palette="muted", hue="tipo_area", ci=None, height=6,
-                   aspect=1.5, scatter_kws={"s": 50, "alpha": 1})
+    g = sns.lmplot(data=data, x="price", y="Price_per_M²", palette="muted", hue="tipo_area", ci=None, height=6, aspect=1.5, scatter_kws={"s": 50, "alpha": 1})
 
     # Expande os eixos em 10% para dar "respiro"
     x_min, x_max = data["price"].min(), data["price"].max()
@@ -208,12 +207,11 @@ data = loaddata(DATASET)
 
 if data is not None:
     data = DataTreat(data)
-    # dispersao_grafico(data, x_col='Price_per_M²', y_col='price')
-    # distribuicao_preco(data)
-    boxplot(data)
-    scatterplot(data)
-    # correlacao_val_num(data)
-    # preco_med(data)
-    lmplot_graph(data)
-    # conj_treino_teste(data)
+    #dispersao_grafico(data, x_col='Price_per_M²', y_col='price')
+    #distribuicao_preco(data)
+    #boxplot_room_price(data)
+    #correlacao_val_num(data)
+    #preco_med(data)
+    #lmplot_graph(data)
+    #conj_treino_teste(data)
 
