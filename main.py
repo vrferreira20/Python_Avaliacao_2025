@@ -166,17 +166,9 @@ def preco_med(data):
     plt.show()
 
 def lmplot_graph(data):
-    sns.lmplot(
-    data=data, 
-    x="price", 
-    y="Price_per_M²",
-    hue="tipo_area",     # cores diferentes para cada tipo de área
-    col="tipo_area",     # cria um gráfico separado para cada tipo de área
-    col_wrap=2,          # organiza em até 3 colunas
-    height=4,            # tamanho de cada facet
-    scatter_kws={"s": 20, "alpha": 0.7}  # estética dos pontos
-    )
-
+    sns.lmplot(data=data, x="price",  y="total_sqm", hue="tipo_area", col="tipo_area",
+    col_wrap=2, height=4, scatter_kws={"s": 20, "alpha": 0.7}) 
+    
     plt.show()
 
 def conj_treino_teste(data):
